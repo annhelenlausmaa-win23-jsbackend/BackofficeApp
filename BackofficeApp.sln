@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.35122.118
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackofficeApp", "BackofficeApp\BackofficeApp\BackofficeApp.csproj", "{DCC5664E-68B4-4CD2-AEF7-E088C4316689}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackofficeApp", "BackofficeApp\BackofficeApp\BackofficeApp.csproj", "{DCC5664E-68B4-4CD2-AEF7-E088C4316689}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackofficeApp.Client", "BackofficeApp\BackofficeApp.Client\BackofficeApp.Client.csproj", "{B62D60D8-7A3E-4EDC-A71C-AAF1C65740D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackofficeApp.Client", "BackofficeApp\BackofficeApp.Client\BackofficeApp.Client.csproj", "{B62D60D8-7A3E-4EDC-A71C-AAF1C65740D9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

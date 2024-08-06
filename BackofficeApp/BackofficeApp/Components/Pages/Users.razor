@@ -1,0 +1,39 @@
+﻿@page "/users"
+
+@inject UserService UserService
+
+@attribute [StreamRendering]
+
+<PageTitle>Users</PageTitle>
+
+
+<h3>Users</h3>
+
+@if (users == null)
+{
+    @LoadingMessage
+}
+else
+{
+    @foreach (var user in users)
+    {
+        <div>@user.FirstName @user.Email</div>
+    }
+}
+
+@code {
+    private string LoadingMessage = "Loading...";
+    private List<ApplicationUser> users = null!;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UserService.GetAllUsersAsync();
+
+        if(users == null)
+        {
+            LoadingMessage = "No users found";  
+        }
+        
+    }
+}

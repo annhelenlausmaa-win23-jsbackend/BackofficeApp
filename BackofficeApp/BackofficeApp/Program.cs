@@ -2,6 +2,7 @@ using BackofficeApp.Client.Pages;
 using BackofficeApp.Components;
 using BackofficeApp.Components.Account;
 using BackofficeApp.Data;
+using BackofficeApp.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,10 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+builder.Services.AddHttpClient();
+
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 

@@ -9,6 +9,7 @@
 @inject ILogger<Login> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject HttpClient httpClient
 
 <PageTitle>Log in</PageTitle>
 
@@ -34,7 +35,7 @@
                 </div>
                 <div class="checkbox mb-3">
                     <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
+                        <InputCheckbox @bind-Value="Input.IsPersistant" class="darker-border-checkbox form-check-input" />
                         Remember me
                     </label>
                 </div>
@@ -89,7 +90,7 @@
     {
         // This doesn't count login failures towards account lockout
         // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+        var result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.IsPersistant, lockoutOnFailure: false);
         if (result.Succeeded)
         {
             Logger.LogInformation("User logged in.");
@@ -99,7 +100,7 @@
         {
             RedirectManager.RedirectTo(
                 "Account/LoginWith2fa",
-                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.RememberMe });
+                new() { ["returnUrl"] = ReturnUrl, ["rememberMe"] = Input.IsPersistant });
         }
         else if (result.IsLockedOut)
         {
@@ -123,6 +124,6 @@
         public string Password { get; set; } = "";
 
         [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
+        public bool IsPersistant { get; set; }
     }
 }
