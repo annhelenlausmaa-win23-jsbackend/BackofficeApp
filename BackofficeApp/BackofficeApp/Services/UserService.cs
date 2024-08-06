@@ -20,4 +20,32 @@ public class UserService(UserManager<ApplicationUser> userManager)
             return null!;
         }
     }
+
+    public async Task UpdateUserAsync(ApplicationUser user)
+    {
+        try
+        {
+
+        }
+        catch
+        {
+
+        }
+    }
+
+    public async Task<bool> DeleteUserAsync(ApplicationUser user)
+    {
+        try
+        {
+            IdentityResult result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded) 
+                return true;
+            else
+                return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

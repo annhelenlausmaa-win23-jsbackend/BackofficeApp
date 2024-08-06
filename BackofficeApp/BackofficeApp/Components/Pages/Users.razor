@@ -1,8 +1,12 @@
 ﻿@page "/users"
 
+
 @inject UserService UserService
 
+@attribute [Authorize]
 @attribute [StreamRendering]
+
+@rendermode InteractiveServer
 
 <PageTitle>Users</PageTitle>
 
@@ -15,10 +19,41 @@
 }
 else
 {
-    @foreach (var user in users)
-    {
-        <div>@user.FirstName @user.Email</div>
-    }
+    <table class="table">
+        <thead>
+            <tr>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.FirstName</td>
+                    <td>@user.LastName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (user.Address != null)
+                        {
+                            @user.Address.AddressLine1 @user.Address.City @user.Address.PostalCode
+                        }
+                        else
+                        {
+                            <em>No Address</em>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditUser(user)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteUser(user)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
 }
 
 @code {
@@ -28,12 +63,33 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
         users = await UserService.GetAllUsersAsync();
 
-        if(users == null)
+        if (users == null)
         {
-            LoadingMessage = "No users found";  
+            LoadingMessage = "No users found";
         }
-        
+    }
+
+    private async Task EditUser(ApplicationUser user)
+    {
+        //ADD LOGIC!!!!!!!!!!!
+    }
+
+    private async Task DeleteUser(ApplicationUser user)
+    {
+        if (user != null)
+        {
+            bool result = await UserService.DeleteUserAsync(user);
+            if (result)
+            {
+                users = await UserService.GetAllUsersAsync();  
+            }
+        }
     }
 }

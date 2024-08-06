@@ -1,3 +1,4 @@
+using BackofficeApp;
 using BackofficeApp.Client.Pages;
 using BackofficeApp.Components;
 using BackofficeApp.Components.Account;
@@ -36,7 +37,17 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.ConfigureApplicationCookie(x =>
+{
+    x.LoginPath = "/";
+    x.Cookie.HttpOnly = true;
+    x.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    x.ExpireTimeSpan = TimeSpan.FromHours(1);
+    x.SlidingExpiration = true;
+});
+
+
+//builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 builder.Services.AddHttpClient();
 
@@ -65,7 +76,7 @@ app.UseAntiforgery();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(BackofficeApp.Client._Imports).Assembly);
+.AddAdditionalAssemblies(typeof(BackofficeApp.Client._Imports).Assembly);
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
