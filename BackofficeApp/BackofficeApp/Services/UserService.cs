@@ -21,15 +21,35 @@ public class UserService(UserManager<ApplicationUser> userManager)
         }
     }
 
-    public async Task UpdateUserAsync(ApplicationUser user)
+    public async Task<ApplicationUser> GetUserAsync(ApplicationUser selectedUser)
     {
         try
         {
-
+            ApplicationUser? user = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == selectedUser.Id);
+            if (user != null) 
+                return user;
+            else
+                return null!;
         }
         catch
         {
+            return null!;
+        }
+    }
 
+    public async Task<bool> UpdateUserAsync(ApplicationUser updatedUser)
+    {
+        try
+        {
+            IdentityResult result = await _userManager.UpdateAsync(updatedUser);
+            if (result.Succeeded)
+                return true;
+            else
+                return false;
+        }
+        catch
+        {
+            return false;
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿@page "/users"
 
 
+
 @inject UserService UserService
 
 @attribute [Authorize]
@@ -56,10 +57,73 @@ else
     </table>
 }
 
+@if (showUpdateForm)
+{
+    <EditForm class="basic-info-form" Model="DetailsInput" FormName="profile" OnValidSubmit="UpdateUser" method="post" novalidate>
+        <DataAnnotationsValidator />
+        <h5 class="h5 colored-subheading">Basic Info</h5>
+        @*     @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+        <div class="alert">
+        <p>@ErrorMessage</p>
+        <i class="fa-solid fa-triangle-exclamation icon"></i>
+        </div>
+        } *@
+        <div class="input-pair-wrapper">
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="firstname">First name</label>
+                    <ValidationMessage For="() => DetailsInput.FirstName" class="text-s span" />
+                </div>
+                <InputText @bind-Value="formInput.FirstName" class="input" autocomplete="givenname" aria-required="true" placeholder="" />
+            </div>
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="lastname">Last name</label>
+                    <ValidationMessage For="() => DetailsInput.LastName" class="text-s span" />
+                </div>
+                <InputText @bind-Value="formInput.LastName" class="input" autocomplete="surname" aria-required="true" placeholder="" />
+            </div>
+        </div>
+        <div class="input-pair-wrapper">
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="email">Email</label>
+                    <ValidationMessage For="() => DetailsInput.Email" class="text-s span" />
+                </div>
+                <InputText @bind-Value="formInput.Email" class="input" autocomplete="email" aria-required="true" placeholder="" />
+            </div>
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="DetailsInput.PhoneNumber">PhoneNumber</label>
+                </div>
+                <InputText @bind-Value="formInput.PhoneNumber" class="input" autocomplete="phonenumber" aria-required="true" placeholder="" />
+            </div>
+        </div>
+@*         <div class="input-wrapper">
+            <div class="input-top-wrapper">
+                <label class="h6 label" for="DetailsInput.Biography"></label>
+            </div>
+            <InputTextArea @bind-Value="formInput.Biography" class="input" autocomplete="biograpfy" aria-required="true" placeholder="" />
+        </div> *@
+
+        <div class="button-wrapper">
+            <button type="reset" @onclick="() => ResetForm()" class="btn-gray button">Cancel</button>
+            <button type="submit" class="btn-theme button">Save changes</button>
+        </div>
+    </EditForm>
+}
+
 @code {
     private string LoadingMessage = "Loading...";
+    private bool showUpdateForm = false;
     private List<ApplicationUser> users = null!;
+    private DetailsInputModel formInput = new();
+    private ApplicationUser currentUser = new();
 
+
+    [SupplyParameterFromForm]
+    private DetailsInputModel DetailsInput { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,9 +140,50 @@ else
         }
     }
 
-    private async Task EditUser(ApplicationUser user)
+    private void ResetForm()
     {
-        //ADD LOGIC!!!!!!!!!!!
+        showUpdateForm = false;
+    }
+
+    private void EditUser(ApplicationUser user)
+    {
+        //visa form
+        showUpdateForm = true;
+
+        //spara ner klickad user
+        currentUser = user;
+
+        //populera datan i formuläret
+        formInput.FirstName = user.FirstName ?? "";
+        formInput.LastName = user.LastName ?? "";
+        formInput.Email = user.Email!;
+        formInput.PhoneNumber = user.PhoneNumber;
+    }
+
+    private async Task UpdateUser()
+    {
+
+        //LÄGG IN CHECK SÅ FÄLT ÄR EJ NULL!
+
+        //hämta befintlig user
+        ApplicationUser userToUpdate = await UserService.GetUserAsync(currentUser);
+
+        if (userToUpdate != null)
+        {
+            //uppdatera befintlig users värden
+            userToUpdate.FirstName = formInput.FirstName;
+            userToUpdate.LastName = formInput.LastName;
+            userToUpdate.Email = formInput.Email;
+            userToUpdate.PhoneNumber = formInput.PhoneNumber;
+ 
+            //kalla på service för update som uppdaterar på rätt id
+            bool result = await UserService.UpdateUserAsync(userToUpdate);
+            if (result)
+            {
+                showUpdateForm = false;
+                users = await UserService.GetAllUsersAsync();
+            }
+        }
     }
 
     private async Task DeleteUser(ApplicationUser user)
@@ -91,5 +196,26 @@ else
                 users = await UserService.GetAllUsersAsync();  
             }
         }
+    }
+
+    private sealed class DetailsInputModel
+    {
+        public string Id { get; set; } = null!;
+
+        [Display(Name = "First name")]
+        [DataType(DataType.Text)]
+        public string FirstName { get; set; } = null!;
+
+        [Display(Name = "Last name")]
+        [DataType(DataType.Text)]
+        public string LastName { get; set; } = null!;
+
+        [Display(Name = "E-mail")]
+        [DataType(DataType.EmailAddress)]
+        public string Email { get; set; } = null!;
+
+        [Phone]
+        [Display(Name = "Phone number")]
+        public string? PhoneNumber { get; set; }
     }
 }
