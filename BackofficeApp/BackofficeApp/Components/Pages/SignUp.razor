@@ -1,0 +1,162 @@
+﻿@page "/signup"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using BackofficeApp.Data
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<SignUp> Logger
+@inject NavigationManager NavigationManager
+
+<PageTitle>Sign up</PageTitle>
+
+<section class="section sign-up-section">
+    <div class="content">
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert">
+                <p>@ErrorMessage</p>
+                <i class="fa-solid fa-triangle-exclamation icon"></i>
+            </div>
+        }
+
+        <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="signup" novalidate>
+            <DataAnnotationsValidator />
+            <div class="form-heading">
+                <h1 class="h1">Create Account</h1>
+                <p class="text-m">Already have an account? <a href="/">Sign in here.</a></p>
+            </div>
+
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="firstname">First name</label>
+                    <ValidationMessage For="() => Input.FirstName" class="text-s span" />
+                </div>
+                <InputText @bind-Value="Input.FirstName" class="input" autocomplete="givenname" aria-required="true" placeholder="Enter your first name" />
+            </div>
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="lastname">Last name</label>
+                    <ValidationMessage For="() => Input.LastName" class="text-s span" />
+                </div>
+                <InputText @bind-Value="Input.LastName" class="input" autocomplete="surname" aria-required="true" placeholder="Enter your last name" />
+            </div>
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="email">Email</label>
+                    <ValidationMessage For="() => Input.Email" class="text-s span" />
+                </div>
+                <InputText type="email" @bind-Value="Input.Email" class="input" autocomplete="email" aria-required="true" placeholder="Enter your email" />
+            </div>
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="password">Password</label>
+                    <ValidationMessage For="() => Input.Password" class="text-s span" />
+                </div>
+                <InputText type="password" @bind-Value="Input.Password" class="input" autocomplete="password" aria-required="true" placeholder="Enter a password" />
+            </div>
+            <div class="input-wrapper">
+                <div class="input-top-wrapper">
+                    <label class="h6 label" for="confirmpassword">ConfirmPassword</label>
+                    <ValidationMessage For="() => Input.ConfirmPassword" class="text-s span" />
+                </div>
+                <InputText type="password" @bind-Value="Input.ConfirmPassword" class="input" autocomplete="confirm" aria-required="true" placeholder="Confirm your password" />
+            </div>
+            <div class="checkbox-wrapper">
+                <ValidationMessage For="() => Input.TermsAndConditions" class="text-s span" />
+                <div>
+                    <InputCheckbox @bind-Value="Input.TermsAndConditions" class="checkbox" autocomplete="terms" aria-required="true" />
+                    <label class="" for="termsandconditions">
+                        I agree to the <a href="/">Terms</a> and <a href="/">Conditions</a>
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn-theme-s button">Sign up</button>
+        </EditForm>
+    </div>
+</section>
+
+@code {
+
+    private string? ErrorMessage { get; set; }
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    public async Task RegisterUser(EditContext editContext)
+    {
+        var user = new ApplicationUser
+            {
+                FirstName = Input.FirstName,
+                LastName = Input.LastName,
+                UserName = Input.Email,
+                Email = Input.Email
+            };
+
+        if (await UserManager.Users.AnyAsync(x => x.Email == user.Email))
+        {
+            ErrorMessage = "Email already in use";
+            return;
+        }
+
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (!result.Succeeded)
+        {
+            return;
+        }
+
+        Logger.LogInformation("User created a new account with password.");
+
+        if (UserManager.Options.SignIn.RequireConfirmedAccount)
+        {
+            NavigationManager.NavigateTo($"/Confirm?{user.Email}");
+        }
+
+        await SignInManager.SignInAsync(user, isPersistent: false);
+        NavigationManager.NavigateTo(ReturnUrl ?? "/auth");
+    }
+
+
+    private sealed class InputModel
+    {
+        [Display(Name = "First name")]
+        [Required(ErrorMessage = "You must enter a first name")]
+        [MinLength(2, ErrorMessage = "Invalid first name format")]
+        [DataType(DataType.Text)]
+        public string FirstName { get; set; } = null!;
+
+        [Display(Name = "Last name")]
+        [Required(ErrorMessage = "You must enter a last name")]
+        [MinLength(2, ErrorMessage = "Invalid last name format")]
+        [DataType(DataType.Text)]
+        public string LastName { get; set; } = null!;
+
+        [Display(Name = "E-mail")]
+        [Required(ErrorMessage = "You must enter an e-mail")]
+        [RegularExpression("^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$", ErrorMessage = "Invalid e-mail format")]
+        [DataType(DataType.EmailAddress)]
+        public string Email { get; set; } = null!;
+
+        [Display(Name = "Password")]
+        [Required(ErrorMessage = "You must enter a password")]
+        [RegularExpression("^(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+])[A-Za-z\\d!@#$%^&*()_+]{8,}$", ErrorMessage = "Invalid password format")]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = null!;
+
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "Passwords don´t match")]
+        [DataType(DataType.Password)]
+        public string ConfirmPassword { get; set; } = null!;
+
+        // [CheckboxRequired(ErrorMessage = "You have to accept Terms and Conditions")]
+        public bool TermsAndConditions { get; set; } = false;
+    }
+}
