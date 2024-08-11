@@ -52,6 +52,7 @@ builder.Services.ConfigureApplicationCookie(x =>
 builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<SubscribeService>();
 
 var app = builder.Build();
 

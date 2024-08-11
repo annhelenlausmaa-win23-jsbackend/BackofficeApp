@@ -1,0 +1,117 @@
+﻿@page "/subscribers"
+
+@inject SubscribeService SubscribeService
+
+@attribute [Authorize]
+@attribute [StreamRendering]
+
+@rendermode InteractiveServer
+
+@if(subscribers == null){
+    @LoadingMessage
+} 
+else
+{
+    @if (showUpdateForm)
+    {
+        <EditForm class="basic-info-form" Model="SubscribeInput" FormName="subscribe" OnValidSubmit="UpdateSubscriber" method="post" novalidate>
+            <DataAnnotationsValidator />
+            <h5 class="h5 colored-subheading">Edit subscriber</h5>
+                <div class="input-wrapper">
+                    <div class="input-top-wrapper">
+                        <label class="h6 label" for="email">Email</label>
+                    <ValidationMessage For="() => SubscribeInput.Email" class="text-s span" />
+                    </div>
+                    <InputText @bind-Value="formInput.Email" class="input" autocomplete="email" aria-required="true" placeholder="" />
+                </div>
+            <div class="button-wrapper">
+                <button type="reset" @onclick="() => ResetForm()" class="btn-gray button">Cancel</button>
+                <button type="submit" class="btn-theme button">Save changes</button>
+            </div>
+        </EditForm>
+    }
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var subscriber in subscribers)
+            {
+                <tr>
+                    <td>@subscriber.Email</td>
+                    <td>
+                        <button class="btn btn-primary" @onclick="() => EditSubscriber(subscriber)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteSubscriber(subscriber)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private string LoadingMessage = "Loading...";
+    private bool showUpdateForm = false;
+    private List<SubscribeModel> subscribers = new();
+    private SubscribeModel currentSubscriber = new();
+    private SubscribeInputModel formInput = new();
+
+    [SupplyParameterFromForm]
+    private SubscribeInputModel SubscribeInput { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSubscribers();
+    }
+
+    private async Task LoadSubscribers()
+    {
+        subscribers = await SubscribeService.GetAllSubscribersAsync();
+
+        if (subscribers == null)
+        {
+            LoadingMessage = "No subscribers found";
+        }
+    }
+
+    private void ResetForm()
+    {
+        showUpdateForm = false;
+    }
+
+
+    private void EditSubscriber(SubscribeModel subscriber)
+    {
+        showUpdateForm = true;
+        currentSubscriber = subscriber;
+
+        formInput.Email = subscriber.Email;
+    }
+
+    private async Task UpdateSubscriber()
+    {
+        //add syntax for updating a subscriber -  create a "UpdateSubscriber" endpoint first
+    }
+
+    private async Task DeleteSubscriber(SubscribeModel subscriber)
+    {
+
+    }
+
+    private sealed class SubscribeInputModel
+    {
+        public string Email { get; set; } = null!;
+        public bool DailyNewsLetter { get; set; }
+        public bool AdvertisingUpdates { get; set; }
+        public bool WeekInReview { get; set; }
+        public bool EventUpdates { get; set; }
+        public bool StartupsWeekly { get; set; }
+        public bool Podcasts { get; set; }
+    }
+
+}
